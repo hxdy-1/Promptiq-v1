@@ -3,7 +3,7 @@ import { db } from "@/db/client";
 import { threads } from "@/db/schema";
 import { users } from "@/db/schema";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import { eq } from "drizzle-orm";
 
 export default async function SidebarWrapper() {

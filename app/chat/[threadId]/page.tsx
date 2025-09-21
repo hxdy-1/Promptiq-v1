@@ -1,5 +1,5 @@
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import ChatThreadClient from "@/components/chat/chat-thread-client";
 import { db } from "@/db/client";
@@ -12,17 +12,19 @@ interface ChatMessage {
 	content: string;
 }
 
-export default async function ChatThreadPage({
-	params,
-}: {
-	params: { threadId: string };
-}) {
+interface PageProps {
+	params: {
+		threadId: string;
+	};
+}
+
+export default async function ChatThreadPage({ params }: any) {
 	const session = await getServerSession(authOptions);
 	if (!session?.user?.email || !session?.user?.id) {
 		redirect("/auth");
 	}
 
-	const { threadId } = await params;
+	const { threadId } = params;
 
 	const thread = await db.query.threads.findFirst({
 		where: eq(threads.id, threadId),
