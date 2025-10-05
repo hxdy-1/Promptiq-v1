@@ -3,9 +3,8 @@
 import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth";
 import { db } from "@/db/client";
-import { threads } from "@/db/schema";
-import { users } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { threads, users, messages } from "@/db/schema";
+import { eq, desc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 export async function createThread(revalidatePaths: boolean) {
@@ -22,7 +21,30 @@ export async function createThread(revalidatePaths: boolean) {
 		throw new Error("User not found");
 	}
 
-	// Create new thread
+	// Get the user's last thread (latest created)
+	const [lastThread] = await db
+		.select()
+		.from(threads)
+		.where(eq(threads.userId, user.id))
+		.orderBy(desc(threads.createdAt))
+		.limit(1);
+
+	if (lastThread) {
+		// Check if it's empty (no messages) OR has default title
+		const msgs = await db
+			.select()
+			.from(messages)
+			.where(eq(messages.threadId, lastThread.id))
+			.limit(1);
+
+		const isEmpty = msgs.length === 0;
+
+		if (isEmpty) {
+			return lastThread.id; // reuse it
+		}
+	}
+
+	// Otherwise, create a new thread
 	const [newThread] = await db
 		.insert(threads)
 		.values({

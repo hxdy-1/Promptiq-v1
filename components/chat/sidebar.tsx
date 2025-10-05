@@ -42,14 +42,14 @@ export default function Sidebar({ threads }: SidebarProps) {
 						<MenuIcon className="h-5 w-5" />
 					</Button>
 					{!collapsed && (
-						<h2 className="text-xl font-semibold">Promptiq-v1</h2>
+						<h2 className="text-xl font-bold">Promptiq-v1</h2>
 					)}
 				</div>
 
 				<Button
 					variant="outline"
 					className={
-						"w-full mb-4 py-2 px-4 flex items-center justify-center"
+						"w-full mb-4 py-2 px-4 flex items-center justify-center gap-4"
 					}
 					disabled={isPending}
 					onClick={() =>
@@ -63,7 +63,9 @@ export default function Sidebar({ threads }: SidebarProps) {
 						})
 					}
 				>
-					<PlusIcon className={cn("h-4 w-4")} />
+					<PlusIcon
+						className={cn("h-4 w-4", collapsed ? "ml-" : "-ml-6")}
+					/>
 					{!collapsed && (isPending ? "Creating..." : "New Thread")}
 				</Button>
 			</div>
@@ -117,7 +119,12 @@ export default function Sidebar({ threads }: SidebarProps) {
 						<LogOutIcon className="rotate-180" />
 					) : (
 						<span className="flex items-center gap-4">
-							<LogOutIcon className="rotate-180" />
+							<LogOutIcon
+								className={cn(
+									"rotate-180",
+									collapsed ? "ml-" : "-ml-8"
+								)}
+							/>
 							Logout
 						</span>
 					)}

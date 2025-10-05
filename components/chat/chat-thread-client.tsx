@@ -376,7 +376,7 @@ export default function ChatThreadClient({
 	return (
 		<main className="relative flex flex-col h-dvh justify-between">
 			<header className="p-4 border-b bg-white">
-				<h1 className="text-xl font-bold">{thread.title}</h1>
+				<h1 className="text-xl font-semibold">{thread.title}</h1>
 			</header>
 
 			<article
@@ -398,17 +398,15 @@ export default function ChatThreadClient({
 							/>
 						</div>
 					))
-				) : // <h2>Ready when you are.</h2>
-				// {currentUserFirstName ? () : ()}
-				currentUserFirstName ? (
+				) : currentUserFirstName ? (
 					<div className="flex flex-col h-full justify-center items-center">
-						<h2 className="text-4xl font-semibold text-blue-400 text-shadow-black">
+						<h2 className="text-4xl font-semibold text-blue-400 text-shadow-blue-400">
 							Hi {currentUserFirstName}, how can I help you today?
 						</h2>
 					</div>
 				) : (
 					<div className="flex flex-col h-full justify-center items-center">
-						<h2 className="text-4xl font-semibold text-blue-400 text-shadow-black">
+						<h2 className="text-4xl font-semibold text-blue-400 text-shadow-blue-400">
 							Hey there! Ready when you are.
 						</h2>
 					</div>
