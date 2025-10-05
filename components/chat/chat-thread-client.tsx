@@ -94,7 +94,7 @@ const ChatInputUncontrolled = React.memo(function ChatInputUncontrolled({
 				<Textarea
 					defaultValue=""
 					placeholder="Ask literally anything! But legal :)"
-					className="flex-1 resize-none pb-16 px-4 min-h-32 max-h-48 md:text-base"
+					className="flex-1 resize-none pb-16 px-4 min-h-32 max-h-48 md:text-base shadow-md"
 					name="prompt-input"
 					ref={textareaRef}
 					onInput={handleInput}
@@ -102,7 +102,7 @@ const ChatInputUncontrolled = React.memo(function ChatInputUncontrolled({
 					rows={1}
 				/>
 
-				<div className="flex w-[97%] gap-2 absolute bottom-0.5 left-1/2 -translate-x-1/2 justify-between p-3 pl-0 bg-white">
+				<div className="flex w-[97%] gap-2 absolute bottom-0.5 left-1/2 -translate-x-1/2 justify-between p-2 md:p-3 md:pl-0 bg-white">
 					<Select
 						value={selectedModel}
 						onValueChange={setSelectedModel}

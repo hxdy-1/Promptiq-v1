@@ -4,7 +4,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { LogOutIcon, MenuIcon, PlusIcon } from "lucide-react";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { createThread } from "@/lib/actions/create-thread";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
@@ -23,6 +23,23 @@ export default function Sidebar({ threads }: SidebarProps) {
 	const router = useRouter();
 	const pathname = usePathname();
 	const [isPending, startTransition] = useTransition();
+
+	// effect to set collapsed state based on screen width
+	useEffect(() => {
+		const handleResize = () => {
+			const isMobile = window.innerWidth <= 450;
+			console.log("isMobile", isMobile, window?.innerWidth);
+			setCollapsed(isMobile);
+		};
+
+		// run once on mount
+		handleResize();
+
+		// watch for resize
+		window.addEventListener("resize", handleResize);
+
+		return () => window.removeEventListener("resize", handleResize);
+	}, []);
 
 	return (
 		<aside
