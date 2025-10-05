@@ -159,11 +159,17 @@ export default function ChatThreadClient({
 		"moonshotai/kimi-dev-72b:free",
 	];
 
-	const lastSelectedModel =
+	const defaultModel = "openai/gpt-oss-20b:free";
+
+	const maybeLastModel =
 		initialMessages.length > 0
-			? initialMessages[initialMessages.length - 1].model ||
-			  "openai/gpt-oss-20b:free"
-			: "openai/gpt-oss-20b:free";
+			? initialMessages[initialMessages.length - 1].model
+			: null;
+
+	const lastSelectedModel =
+		maybeLastModel && availableModels.includes(maybeLastModel)
+			? maybeLastModel
+			: defaultModel;
 
 	const { containerRef, bottomRef, isAtBottom, scrollToBottom } =
 		useAutoScrollWithButton();
