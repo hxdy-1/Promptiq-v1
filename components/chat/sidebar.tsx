@@ -28,7 +28,9 @@ export default function Sidebar({ threads }: SidebarProps) {
 		<aside
 			className={cn(
 				"bg-gray-200/10 p-4 transition-all duration-200 border-r flex flex-col", // flex column layout
-				collapsed ? "w-[60px] px-3 relative" : "w-[260px] static"
+				collapsed
+					? "w-[60px] md:w-[60px] px-3 relative"
+					: "w-full md:w-[260px] static"
 			)}
 		>
 			{/* Sticky top */}
@@ -42,7 +44,9 @@ export default function Sidebar({ threads }: SidebarProps) {
 						<MenuIcon className="h-5 w-5" />
 					</Button>
 					{!collapsed && (
-						<h2 className="text-xl font-bold">Promptiq-v1</h2>
+						<h2 className="text-xl font-bold mx-auto mr-[38%] md:mr-auto md:ml-0">
+							Promptiq-v1
+						</h2>
 					)}
 				</div>
 

@@ -94,7 +94,7 @@ const ChatInputUncontrolled = React.memo(function ChatInputUncontrolled({
 				<Textarea
 					defaultValue=""
 					placeholder="Ask literally anything! But legal :)"
-					className="flex-1 resize-none pb-16 px-4 min-h-32 max-h-48"
+					className="flex-1 resize-none pb-16 px-4 min-h-32 max-h-48 md:text-base"
 					name="prompt-input"
 					ref={textareaRef}
 					onInput={handleInput}
@@ -374,7 +374,7 @@ export default function ChatThreadClient({
 	};
 
 	return (
-		<main className="relative flex flex-col h-dvh justify-between">
+		<main className="flex flex-col h-dvh justify-between">
 			<header className="p-4 border-b bg-white">
 				<h1 className="text-xl font-semibold">{thread.title}</h1>
 			</header>
@@ -414,16 +414,15 @@ export default function ChatThreadClient({
 				<div ref={bottomRef}></div>
 			</article>
 
-			{!isAtBottom && (
-				<button
-					onClick={() => scrollToBottom()}
-					className="absolute left-1/2 bottom-1/4 -translate-x-1/2 z-50 p-2 rounded-full border border-stone-600 bg-black text-white shadow-md hover:bg-gray-800 transition "
-				>
-					<ArrowDownIcon size={16} />
-				</button>
-			)}
-
-			<footer className="bg-white mx-auto min-w-5xl max-h-1/2 max-w-5xl">
+			<footer className="relative bg-white mx-auto w-full md:w-5xl max-h-1/2 max-w-5xl">
+				{!isAtBottom && (
+					<button
+						onClick={() => scrollToBottom()}
+						className="absolute left-1/2 bottom-[105%] -translate-x-1/2 z-50 p-2 rounded-full border border-stone-600 bg-black text-white shadow-md hover:bg-gray-800 transition "
+					>
+						<ArrowDownIcon size={16} />
+					</button>
+				)}
 				<ChatInputUncontrolled
 					onSend={handleSendFromChild}
 					onStop={handleStop}
