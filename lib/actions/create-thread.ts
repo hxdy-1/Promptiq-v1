@@ -8,7 +8,7 @@ import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
-export async function createThread() {
+export async function createThread(revalidatePaths: boolean) {
 	const session = await getServerSession(authOptions);
 	if (!session?.user?.email) {
 		throw new Error("Unauthorized");
@@ -32,7 +32,9 @@ export async function createThread() {
 		.returning();
 
 	// revalidate paths using threads
-	revalidatePath("/chat");
+	if (revalidatePaths) {
+		revalidatePath("/chat");
+	}
 
 	return newThread.id;
 }

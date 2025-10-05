@@ -13,8 +13,8 @@ export default function HomePage() {
 					Promptiq.chat
 				</h1>
 				<p className="text-lg text-muted-foreground">
-					Chat with multiple AI models in one place. Fast. Minimal.
-					Powerful. <br />
+					Chat with multiple AI models in one place. It's Fast.
+					Minimal. & Powerful. <br />
 					<span className="text-sm text-blue-400">
 						One interface. Multiple models. Smarter conversations!
 					</span>

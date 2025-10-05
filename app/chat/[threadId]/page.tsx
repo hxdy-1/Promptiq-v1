@@ -10,6 +10,7 @@ interface ChatMessage {
 	id: string;
 	role: "user" | "assistant";
 	content: string;
+	model: string | null;
 }
 
 interface PageProps {
@@ -24,7 +25,7 @@ export default async function ChatThreadPage({ params }: any) {
 		redirect("/auth");
 	}
 
-	const { threadId } = params;
+	const { threadId } = await params;
 
 	const thread = await db.query.threads.findFirst({
 		where: eq(threads.id, threadId),
@@ -43,7 +44,10 @@ export default async function ChatThreadPage({ params }: any) {
 		id: m.id,
 		role: m.role,
 		content: m.content,
+		model: m?.model,
 	}));
+
+	const firstName = session.user.name?.split(" ")[0];
 
 	return (
 		<ChatThreadClient
@@ -52,7 +56,7 @@ export default async function ChatThreadPage({ params }: any) {
 				title: thread.title ?? "Untitled Thread X",
 			}}
 			initialMessages={formattedMessages}
-			currentUserEmail={session.user.email}
+			currentUserFirstName={firstName}
 		/>
 	);
 }
