@@ -15,7 +15,9 @@ export default function MarkdownRenderer({
 }: MarkdownRendererProps) {
 	if (role === "user") {
 		// Plain text for user
-		return <div className="whitespace-pre-wrap">{content}</div>;
+		return (
+			<div className="whitespace-pre-wrap overflow-x-auto">{content}</div>
+		);
 	}
 
 	// Markdown for assistant

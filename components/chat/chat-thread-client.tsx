@@ -18,6 +18,7 @@ import {
 } from "eventsource-parser";
 import { useAutoScrollWithButton } from "@/hooks/useAutoScrollWithButton";
 import { ArrowDownIcon, ArrowDownNarrowWideIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ChatMessage {
 	id: string;
@@ -502,11 +503,12 @@ export default function ChatThreadClient({
 					messages.map((msg) => (
 						<div
 							key={msg.id}
-							className={`p-3 rounded-lg whitespace-pre-wrap ${
+							className={cn(
+								"p-3 rounded-lg whitespace-pre-wrap",
 								msg.role === "user"
-									? "bg-gray-100 w-3/5 ml-auto mb-8"
+									? "bg-gray-100 w-full md:w-3/5 ml-auto mb-8"
 									: "bg-white w-full"
-							}`}
+							)}
 						>
 							<MarkdownRenderer
 								role={msg.role}

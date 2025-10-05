@@ -41,6 +41,13 @@ export default function Sidebar({ threads }: SidebarProps) {
 		return () => window.removeEventListener("resize", handleResize);
 	}, []);
 
+	// auto-collapse on thread switch (mobile only)
+	useEffect(() => {
+		if (window.innerWidth <= 450) {
+			setCollapsed(true);
+		}
+	}, [pathname]);
+
 	return (
 		<aside
 			className={cn(
