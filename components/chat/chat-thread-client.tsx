@@ -81,10 +81,16 @@ const ChatInputUncontrolled = React.memo(function ChatInputUncontrolled({
 	};
 
 	const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-		// optional: support Enter+Meta/Ctrl to submit, or Shift+Enter for newline
-		if (e.key === "Enter" && (e.metaKey || e.ctrlKey) && !isSending) {
-			e.preventDefault();
-			handleSend();
+		if (e.key === "Enter") {
+			if (e.shiftKey) {
+				// Allow newline (don’t preventDefault)
+				return;
+			}
+			// Enter without Shift → send
+			if (!isSending) {
+				e.preventDefault();
+				handleSend();
+			}
 		}
 	};
 
@@ -145,6 +151,14 @@ export default function ChatThreadClient({
 	const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
 	const [isSending, setIsSending] = useState(false);
 
+	const availableModels = [
+		"openai/gpt-oss-20b:free",
+		"google/gemini-2.0-flash-exp:free",
+		"qwen/qwen3-8b:free",
+		"meta-llama/llama-4-maverick:free",
+		"moonshotai/kimi-dev-72b:free",
+	];
+
 	const lastSelectedModel =
 		initialMessages.length > 0
 			? initialMessages[initialMessages.length - 1].model ||
@@ -161,14 +175,6 @@ export default function ChatThreadClient({
 	useEffect(() => {
 		if (isAtBottom) scrollToBottom();
 	}, [messages, isAtBottom, scrollToBottom]);
-
-	const availableModels = [
-		"openai/gpt-oss-20b:free",
-		"moonshotai/kimi-k2:free",
-		"qwen/qwen3-4b:free",
-		"deepseek/deepseek-r1:free",
-	];
-
 	const scheduleFlush = (assistantId: string) => {
 		if (flushTimeoutRef.current) return;
 		flushTimeoutRef.current = window.setTimeout(() => {
@@ -226,8 +232,7 @@ export default function ChatThreadClient({
 			abortControllerRef.current = controller;
 
 			try {
-				// build conversation history from the current messages snapshot (we can use messages state here because handleSendFromChild is in deps of messages if needed)
-				// Use a fresh snapshot by reading messages directly (closure will have the latest value because handleSendFromChild changes with messages in deps).
+				// build conversation history from the current messages snapshot
 				const conversationHistory = [...messages, userMessage].map(
 					(m) => ({
 						role: m.role,
@@ -246,10 +251,72 @@ export default function ChatThreadClient({
 					signal: controller.signal,
 				});
 
-				if (!res.ok || !res.body) {
-					throw new Error("Stream error");
+				// If non-OK: read full body (text/json) and show that as assistant's message
+				if (!res.ok) {
+					console.error(
+						"Non-OK response from /api/chat/stream",
+						res.status,
+						res.statusText
+					);
+					let errorMsg =
+						"❌ Failed to generate response. Please try again.";
+					try {
+						const text = await res.text();
+						try {
+							const parsed = JSON.parse(text);
+							if (parsed?.error?.message) {
+								errorMsg = `❌ ${parsed.error.message}`;
+							} else if (parsed?.message) {
+								errorMsg = `❌ ${parsed.message}`;
+							} else {
+								errorMsg = `❌ ${JSON.stringify(parsed)}`;
+							}
+						} catch {
+							if (text) errorMsg = `❌ ${text}`;
+						}
+					} catch (readErr) {
+						console.error("Failed to read error body:", readErr);
+					}
+
+					setMessages((prev) =>
+						prev.map((m) =>
+							m.id === assistantPlaceholder.id
+								? { ...m, content: errorMsg }
+								: m
+						)
+					);
+
+					// cleanup and stop
+					setIsSending(false);
+					abortControllerRef.current = null;
+					if (flushTimeoutRef.current) {
+						window.clearTimeout(flushTimeoutRef.current);
+						flushTimeoutRef.current = null;
+					}
+					tokenBufferRef.current = "";
+					return;
 				}
 
+				// If OK but no body (shouldn't normally happen for streaming endpoint)
+				if (!res.body) {
+					const text = await res.text().catch(() => "");
+					const errorMsg = text
+						? `❌ ${text}`
+						: "❌ Server did not return a stream.";
+					setMessages((prev) =>
+						prev.map((m) =>
+							m.id === assistantPlaceholder.id
+								? { ...m, content: errorMsg }
+								: m
+						)
+					);
+					setIsSending(false);
+					abortControllerRef.current = null;
+					tokenBufferRef.current = "";
+					return;
+				}
+
+				// Stream reading + parsing
 				const reader = res.body.getReader();
 				const decoder = new TextDecoder();
 				let assistantText = "";
@@ -275,7 +342,7 @@ export default function ChatThreadClient({
 								assistantText += delta;
 							}
 						} catch {
-							// ignore parse errors
+							// ignore parse errors for SSE events
 						}
 					},
 					onError: (err: ParseError) => {
@@ -283,13 +350,51 @@ export default function ChatThreadClient({
 					},
 				});
 
+				// Read loop
 				while (true) {
 					const { done, value } = await reader.read();
 					if (done) break;
-					parser.feed(decoder.decode(value, { stream: true }));
+					const chunk = decoder.decode(value, { stream: true });
+
+					// Quick attempt: the server might return a JSON error as the first chunk (not SSE).
+					// Try to detect a short JSON error payload and handle it immediately.
+					try {
+						const trimmed = chunk.trim();
+						if (trimmed.startsWith("{") && trimmed.length < 20000) {
+							const maybeJson = JSON.parse(trimmed);
+							if (
+								maybeJson?.error?.message ||
+								maybeJson?.message
+							) {
+								const errText =
+									maybeJson?.error?.message ??
+									maybeJson?.message ??
+									JSON.stringify(maybeJson);
+								const errorMsg = `❌ ${errText}`;
+								setMessages((prev) =>
+									prev.map((m) =>
+										m.id === assistantPlaceholder.id
+											? { ...m, content: errorMsg }
+											: m
+									)
+								);
+								// stop consuming further and exit
+								reader.cancel().catch(() => {});
+								setIsSending(false);
+								abortControllerRef.current = null;
+								tokenBufferRef.current = "";
+								return;
+							}
+						}
+					} catch {
+						// not a plain JSON error chunk — continue normal SSE parsing
+					}
+
+					// feed parser for normal SSE stream
+					parser.feed(chunk);
 				}
 
-				// flush remaining buffer
+				// Flush buffer (any remainder)
 				if (tokenBufferRef.current) {
 					const rem = tokenBufferRef.current;
 					tokenBufferRef.current = "";
@@ -302,7 +407,7 @@ export default function ChatThreadClient({
 					);
 				}
 
-				// set final assistant text
+				// Set final assistant text
 				setMessages((prev) =>
 					prev.map((m) =>
 						m.id === assistantPlaceholder.id
@@ -311,7 +416,7 @@ export default function ChatThreadClient({
 					)
 				);
 
-				// save assistant message
+				// Persist assistant message (fire-and-forget)
 				fetch("/api/messages", {
 					method: "POST",
 					headers: { "Content-Type": "application/json" },
@@ -326,7 +431,8 @@ export default function ChatThreadClient({
 				);
 			} catch (err: any) {
 				console.error("Streaming failed:", err);
-				if (err.name === "AbortError") {
+
+				if (err?.name === "AbortError") {
 					const partial = tokenBufferRef.current || "";
 					setMessages((prev) =>
 						prev.map((m) =>
@@ -342,14 +448,17 @@ export default function ChatThreadClient({
 						)
 					);
 				} else {
+					// If fetch/res.body threw earlier than the explicit checks, try to show the error message if available
+					let errorMsg =
+						"❌ Failed to generate response, please try again. If it keeps on failing switch to a different model";
+					try {
+						// sometimes err contains a response-like body or message
+						if (err?.message) errorMsg = `❌ ${err.message}`;
+					} catch {}
 					setMessages((prev) =>
 						prev.map((m) =>
 							m.id === assistantPlaceholder.id
-								? {
-										...m,
-										content:
-											"❌ Failed to generate response, please try again. If it keeps on failing switch to a different model",
-								  }
+								? { ...m, content: errorMsg }
 								: m
 						)
 					);
@@ -383,7 +492,7 @@ export default function ChatThreadClient({
 				ref={containerRef}
 				className="overflow-y-auto px-[10%] py-12 space-y-4 h-full"
 			>
-				{initialMessages?.length > 0 ? (
+				{messages?.length > 0 ? (
 					messages.map((msg) => (
 						<div
 							key={msg.id}
@@ -394,6 +503,7 @@ export default function ChatThreadClient({
 							}`}
 						>
 							<MarkdownRenderer
+								role={msg.role}
 								content={msg.content || "_Thinking..._"}
 							/>
 						</div>

@@ -1,3 +1,4 @@
+import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
@@ -5,13 +6,23 @@ import "highlight.js/styles/github.css";
 
 interface MarkdownRendererProps {
 	content: string;
+	role: "user" | "assistant";
 }
 
-export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
+export default function MarkdownRenderer({
+	content,
+	role,
+}: MarkdownRendererProps) {
+	if (role === "user") {
+		// Plain text for user
+		return <div className="whitespace-pre-wrap">{content}</div>;
+	}
+
+	// Markdown for assistant
 	return (
 		<div
 			className="
-		    prose prose-pink max-w-none dark:prose-invert prose-pre:m-0 prose-pre:bg-transparent prose-pre:p-0 prose-p:m-0
+		    prose prose-blue max-w-none dark:prose-invert prose-pre:m-0 prose-pre:bg-transparent prose-pre:p-0 prose-p:m-0
 		  "
 		>
 			<ReactMarkdown
