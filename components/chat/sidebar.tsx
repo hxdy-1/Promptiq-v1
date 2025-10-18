@@ -26,19 +26,20 @@ export default function Sidebar({ threads }: SidebarProps) {
 
 	// effect to set collapsed state based on screen width
 	useEffect(() => {
-		const handleResize = () => {
-			const isMobile = window.innerWidth <= 450;
-			console.log("isMobile", isMobile, window?.innerWidth);
+		const mediaQuery = window.matchMedia("(max-width: 450px)");
+
+		const handleChange = (e: MediaQueryListEvent | MediaQueryList) => {
+			const isMobile = e.matches;
+			console.log("isMobile", isMobile);
 			setCollapsed(isMobile);
 		};
 
-		// run once on mount
-		handleResize();
+		// Initial check
+		handleChange(mediaQuery);
 
-		// watch for resize
-		window.addEventListener("resize", handleResize);
-
-		return () => window.removeEventListener("resize", handleResize);
+		// Watch for width changes only
+		mediaQuery.addEventListener("change", handleChange);
+		return () => mediaQuery.removeEventListener("change", handleChange);
 	}, []);
 
 	// auto-collapse on thread switch (mobile only)
@@ -51,7 +52,7 @@ export default function Sidebar({ threads }: SidebarProps) {
 	return (
 		<aside
 			className={cn(
-				"bg-gray-200/10 p-4 transition-all duration-200 border-r flex flex-col", // flex column layout
+				"bg-gray-200/10 p-4 min-h-dvh transition-all duration-200 border-r flex flex-col", // flex column layout
 				collapsed
 					? "w-[60px] md:w-[60px] px-3 relative"
 					: "w-full md:w-[260px] static"
@@ -99,37 +100,36 @@ export default function Sidebar({ threads }: SidebarProps) {
 			</div>
 
 			{/* Scrollable middle */}
-			{collapsed ? (
-				<></>
-			) : (
-				<div className="flex-1 overflow-y-auto space-y-2">
-					{threads.map((thread) => (
-						<Link
-							href={`/chat/${thread.id}`}
-							key={thread.id}
-							prefetch={true}
+			<div
+				className={cn(
+					"flex-1 overflow-y-auto space-y-2 transition-all duration-300",
+					collapsed ? "invisible" : "visible"
+				)}
+			>
+				{threads.map((thread) => (
+					<Link
+						href={`/chat/${thread.id}`}
+						key={thread.id}
+						prefetch={true}
+					>
+						<Button
+							variant={
+								pathname.includes(thread.id)
+									? "default"
+									: "ghost"
+							}
+							className={cn(
+								"w-full flex justify-start",
+								collapsed ? "justify-center" : "justify-start"
+							)}
 						>
-							<Button
-								variant={
-									pathname.includes(thread.id)
-										? "default"
-										: "ghost"
-								}
-								className={cn(
-									"w-full flex justify-start",
-									collapsed
-										? "justify-center"
-										: "justify-start"
-								)}
-							>
-								{!collapsed
-									? thread.title || "Untitled"
-									: (thread.title || "U")[0]}
-							</Button>
-						</Link>
-					))}
-				</div>
-			)}
+							{!collapsed
+								? thread.title || "Untitled"
+								: (thread.title || "U")[0]}
+						</Button>
+					</Link>
+				))}
+			</div>
 
 			{/* Sticky bottom */}
 			<div

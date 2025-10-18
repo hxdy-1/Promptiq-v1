@@ -19,6 +19,7 @@ import {
 import { useAutoScrollWithButton } from "@/hooks/useAutoScrollWithButton";
 import { ArrowDownIcon, ArrowDownNarrowWideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { TypewriterEffectSmooth } from "../ui/typewriter-effect";
 
 interface ChatMessage {
 	id: string;
@@ -50,7 +51,7 @@ const ChatInputUncontrolled = React.memo(function ChatInputUncontrolled({
 	onStop: () => void;
 	isSending: boolean;
 	defaultModel: string;
-	availableModels: string[];
+	availableModels: { id: string; label: string }[];
 }) {
 	const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 	const [hasValue, setHasValue] = useState(false);
@@ -101,7 +102,7 @@ const ChatInputUncontrolled = React.memo(function ChatInputUncontrolled({
 				<Textarea
 					defaultValue=""
 					placeholder="Ask literally anything! But legal :)"
-					className="flex-1 resize-none pb-16 px-4 min-h-32 max-h-48 md:text-base shadow-md"
+					className="flex-1 resize-none pb-16 px-4 min-h-32 max-h-48 md:text-base shadow-md focus-visible:border-sky-500"
 					name="prompt-input"
 					ref={textareaRef}
 					onInput={handleInput}
@@ -119,8 +120,8 @@ const ChatInputUncontrolled = React.memo(function ChatInputUncontrolled({
 						</SelectTrigger>
 						<SelectContent>
 							{availableModels.map((m) => (
-								<SelectItem key={m} value={m}>
-									{m}
+								<SelectItem key={m.id} value={m.id}>
+									{m.label}
 								</SelectItem>
 							))}
 						</SelectContent>
@@ -153,11 +154,49 @@ export default function ChatThreadClient({
 	const [isSending, setIsSending] = useState(false);
 
 	const availableModels = [
-		"openai/gpt-oss-20b:free",
-		"google/gemini-2.0-flash-exp:free",
-		"qwen/qwen3-8b:free",
-		"meta-llama/llama-4-maverick:free",
-		"moonshotai/kimi-dev-72b:free",
+		{
+			id: "openai/gpt-oss-20b:free",
+			label: "GPT-OSS 20B",
+		},
+		{
+			id: "google/gemini-2.0-flash-exp:free",
+			label: "Gemini 2.0 Flash",
+		},
+		{
+			id: "qwen/qwen3-8b:free",
+			label: "Qwen 3 8B",
+		},
+		{
+			id: "meta-llama/llama-4-maverick:free",
+			label: "LLaMA 4 Maverick",
+		},
+		{
+			id: "moonshotai/kimi-dev-72b:free",
+			label: "Kimi Dev 72B",
+		},
+	];
+
+	const greetWithName = [
+		{ text: "Hi" },
+		{
+			text: `${currentUserFirstName as string},`,
+			className: "text-sky-500 dark:text-sky-500",
+		},
+		{ text: "how" },
+		{ text: "can" },
+		{ text: "I" },
+		{ text: "help" },
+		{ text: "you" },
+		{ text: "today?" },
+	];
+
+	const greetWithoutName = [
+		{ text: "Hey" },
+		{ text: "there!" },
+		{ text: "Ready" },
+		{ text: "when" },
+		{ text: "you.", className: "text-blue-500 dark:text-blue-500" },
+		{ text: "are." },
 	];
 
 	const defaultModel = "openai/gpt-oss-20b:free";
@@ -168,7 +207,7 @@ export default function ChatThreadClient({
 			: null;
 
 	const lastSelectedModel =
-		maybeLastModel && availableModels.includes(maybeLastModel)
+		maybeLastModel && availableModels.some((m) => m.id === maybeLastModel)
 			? maybeLastModel
 			: defaultModel;
 
@@ -512,21 +551,20 @@ export default function ChatThreadClient({
 						>
 							<MarkdownRenderer
 								role={msg.role}
-								content={msg.content || "_Thinking..._"}
+								content={
+									msg.content ||
+									"_Generation your response..._"
+								}
 							/>
 						</div>
 					))
 				) : currentUserFirstName ? (
-					<div className="flex flex-col h-full justify-center items-center">
-						<h2 className="text-4xl font-semibold text-blue-400 text-shadow-blue-400">
-							Hi {currentUserFirstName}, how can I help you today?
-						</h2>
+					<div className="flex flex-col h-1/2 justify-center items-center">
+						<TypewriterEffectSmooth words={greetWithName} />
 					</div>
 				) : (
-					<div className="flex flex-col h-full justify-center items-center">
-						<h2 className="text-4xl font-semibold text-blue-400 text-shadow-blue-400">
-							Hey there! Ready when you are.
-						</h2>
+					<div className="flex flex-col h-1/2 justify-center items-center">
+						<TypewriterEffectSmooth words={greetWithoutName} />
 					</div>
 				)}
 				<div ref={bottomRef}></div>
