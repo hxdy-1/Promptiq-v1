@@ -5,7 +5,7 @@ import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github.css";
 
 interface MarkdownRendererProps {
-	content: string;
+	content: any;
 	role: "user" | "assistant";
 }
 
