@@ -8,6 +8,7 @@ import { useEffect, useState, useTransition } from "react";
 import { createThread } from "@/lib/actions/create-thread";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
+import { LoaderFive } from "../ui/loader";
 
 interface Thread {
 	id: string;
@@ -92,10 +93,23 @@ export default function Sidebar({ threads }: SidebarProps) {
 						})
 					}
 				>
-					<PlusIcon
-						className={cn("h-4 w-4", collapsed ? "ml-" : "-ml-6")}
-					/>
-					{!collapsed && (isPending ? "Creating..." : "New Thread")}
+					{!collapsed &&
+						(isPending ? (
+							<></>
+						) : (
+							<PlusIcon
+								className={cn(
+									"h-4 w-4",
+									collapsed ? "ml-" : "-ml-6"
+								)}
+							/>
+						))}
+					{!collapsed &&
+						(isPending ? (
+							<LoaderFive text="Creating..." />
+						) : (
+							"New Thread"
+						))}
 				</Button>
 			</div>
 
