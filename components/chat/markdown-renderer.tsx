@@ -27,7 +27,19 @@ export default function MarkdownRenderer({
 	return (
 		<div
 			className="
-		    prose prose-blue max-w-none dark:prose-invert prose-pre:m-0 prose-pre:bg-transparent prose-hr:m-0 prose-pre:p-0 prose-p:m-0 prose-pre:px-0 prose-pre:rounded-xl prose-code:rounded-md prose-headings:m-0 prose-table:m-0 prose-table:mx-4 prose-ul:m-0 prose-ul:leading-[1] prose-ol:m-0 prose-ol:leading-[1] prose-li:m-0 prose-li:leading-normal prose-blockquote:border-none prose-blockquote:not-italic prose-blockquote:m-0
+		    prose prose-sky 
+			max-w-none 
+			dark:prose-invert 
+			prose-pre:m-0 prose-pre:bg-transparent prose-pre:rounded-xl
+			prose-code:rounded-sm prose-code:bg-accent prose-code:px-2 prose-code:py-1
+			prose-hr:m-0 
+			prose-p:m-0 
+			prose-headings:m-0 
+			prose-table:m-0 prose-table:mx-4 
+			prose-ul:m-0 prose-ul:leading-[1] 
+			prose-ol:m-0 prose-ol:leading-[1] 
+			prose-li:m-0 prose-li:leading-normal 
+			prose-blockquote:border-none prose-blockquote:not-italic prose-blockquote:m-0
 		  "
 		>
 			<ReactMarkdown
