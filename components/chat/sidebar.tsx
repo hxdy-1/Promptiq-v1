@@ -78,9 +78,7 @@ export default function Sidebar({ threads }: SidebarProps) {
 
 				<Button
 					variant="outline"
-					className={
-						"w-full mb-4 py-2 px-4 flex items-center justify-center gap-4"
-					}
+					className="w-full mb-4 py-2 px-4 flex items-center justify-center gap-4"
 					disabled={isPending}
 					onClick={() =>
 						startTransition(async () => {
@@ -93,17 +91,14 @@ export default function Sidebar({ threads }: SidebarProps) {
 						})
 					}
 				>
-					{!collapsed &&
-						(isPending ? (
-							<></>
-						) : (
-							<PlusIcon
-								className={cn(
-									"h-4 w-4",
-									collapsed ? "ml-" : "-ml-6"
-								)}
-							/>
-						))}
+					{/* Left icon (only if collapsed or not pending) */}
+					{collapsed ? (
+						<PlusIcon className="h-4 w-4" />
+					) : (
+						!isPending && <PlusIcon className="-ml-6 h-4 w-4" />
+					)}
+
+					{/* Text or loader (only if not collapsed) */}
 					{!collapsed &&
 						(isPending ? (
 							<LoaderFive text="Creating..." />
