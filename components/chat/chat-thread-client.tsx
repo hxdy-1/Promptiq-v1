@@ -529,7 +529,7 @@ export default function ChatThreadClient({
 	};
 
 	return (
-		<main className="flex flex-col h-dvh justify-between">
+		<section className="flex flex-col h-dvh justify-between">
 			<header className="p-4 border-b bg-white">
 				<h1 className="text-xl font-semibold">{thread.title}</h1>
 			</header>
@@ -553,7 +553,7 @@ export default function ChatThreadClient({
 								role={msg.role}
 								content={
 									msg.content ||
-									"_Generation your response..._"
+									"_Generating your response..._"
 								}
 							/>
 						</div>
@@ -587,6 +587,6 @@ export default function ChatThreadClient({
 					availableModels={availableModels}
 				/>
 			</footer>
-		</main>
+		</section>
 	);
 }
