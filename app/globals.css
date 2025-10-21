@@ -124,3 +124,13 @@ button,
 a {
 	cursor: pointer;
 }
+
+::-moz-selection {
+	color: darkslategray;
+	background: powderblue;
+}
+
+::selection {
+	color: darkslategray;
+	background: powderblue;
+}
