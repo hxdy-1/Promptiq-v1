@@ -52,7 +52,7 @@ export default function Sidebar({ threads }: SidebarProps) {
 	return (
 		<aside
 			className={cn(
-				"bg-gray-200/10 p-4 min-h-dvh transition-all duration-200 border-r flex flex-col", // flex column layout
+				"bg-gray-200/10 p-4 min-h-dvh h-dvh transition-all duration-200 border-r flex flex-col", // flex column layout
 				collapsed
 					? "w-[60px] md:w-[60px] px-3 relative"
 					: "w-full md:w-[260px] static"

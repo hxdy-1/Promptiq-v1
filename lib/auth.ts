@@ -15,36 +15,32 @@ export const authOptions: NextAuthOptions = {
 	],
 	secret: process.env.NEXTAUTH_SECRET,
 	callbacks: {
-		async signIn({ user }: { user: User }) {
+		async signIn({ user }) {
 			if (!user?.email) return false;
 
-			const existingUser = await db
-				.select()
-				.from(users)
-				.where(eq(users.email, user.email));
-
-			if (existingUser.length === 0) {
-				await db.insert(users).values({
+			// Insert only if missing
+			await db
+				.insert(users)
+				.values({
 					email: user.email,
 					name: user.name,
 					image: user.image,
-				});
-			}
+				})
+				.onConflictDoNothing();
 
 			return true;
 		},
 
 		// Store app's internal user ID in the token
 		async jwt({ token }) {
-			if (token.email) {
-				const existingUser = await db
-					.select()
+			// Skip DB if we already have user id cached
+			if (!token.id && token.email) {
+				const [existingUser] = await db
+					.select({ id: users.id })
 					.from(users)
-					.where(eq(users.email, token.email));
-
-				if (existingUser.length > 0) {
-					token.id = existingUser[0].id; // This is your app's UUID
-				}
+					.where(eq(users.email, token.email))
+					.limit(1);
+				if (existingUser) token.id = existingUser.id;
 			}
 			return token;
 		},

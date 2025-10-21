@@ -1,3 +1,4 @@
+import { relations } from "drizzle-orm";
 import {
 	pgTable,
 	uuid,
@@ -43,3 +44,28 @@ export const messages = pgTable("messages", {
 	outputTokens: integer("output_tokens"),
 	createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
+
+// --- Relations ---
+export const usersRelations = relations(users, ({ many }) => ({
+	threads: many(threads),
+	messages: many(messages),
+}));
+
+export const threadsRelations = relations(threads, ({ one, many }) => ({
+	user: one(users, {
+		fields: [threads.userId],
+		references: [users.id],
+	}),
+	messages: many(messages),
+}));
+
+export const messagesRelations = relations(messages, ({ one }) => ({
+	user: one(users, {
+		fields: [messages.userId],
+		references: [users.id],
+	}),
+	thread: one(threads, {
+		fields: [messages.threadId],
+		references: [threads.id],
+	}),
+}));
