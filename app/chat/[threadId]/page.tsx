@@ -11,6 +11,10 @@ interface ChatMessage {
 	role: "user" | "assistant";
 	content: string;
 	model: string | null;
+	inputTokens?: number | null;
+	outputTokens?: number | null;
+	totalTokens?: number | null;
+	createdAt?: string;
 }
 
 interface PageProps {
@@ -45,6 +49,8 @@ export default async function ChatThreadPage({ params }: any) {
 		role: m.role,
 		content: m.content,
 		model: m?.model,
+		inputTokens: m?.inputTokens,
+		outputTokens: m?.outputTokens,
 	}));
 
 	const firstName = session.user.name?.split(" ")[0];

@@ -13,7 +13,7 @@ export async function POST(req: Request) {
 	}
 
 	const body = await req.json();
-	const { content, threadId, model, role } = body;
+	const { content, threadId, model, role, inputTokens, outputTokens } = body;
 
 	if (!content || !threadId || !model || !role) {
 		return NextResponse.json({ error: "Missing fields" }, { status: 400 });
@@ -36,6 +36,15 @@ export async function POST(req: Request) {
 	const messageId = uuid();
 	const createdAt = new Date();
 
+	const safeInputTokens =
+		typeof inputTokens === "number"
+			? Math.max(0, Math.trunc(inputTokens))
+			: null;
+	const safeOutputTokens =
+		typeof outputTokens === "number"
+			? Math.max(0, Math.trunc(outputTokens))
+			: null;
+
 	await db.insert(messages).values({
 		id: messageId,
 		content,
@@ -43,6 +52,8 @@ export async function POST(req: Request) {
 		threadId,
 		model,
 		userId: user.id,
+		inputTokens: safeInputTokens,
+		outputTokens: safeOutputTokens,
 		createdAt,
 	});
 
@@ -52,6 +63,8 @@ export async function POST(req: Request) {
 			content,
 			role,
 			model,
+			inputTokens: safeInputTokens,
+			outputTokens: safeOutputTokens,
 			createdAt,
 		},
 	});
