@@ -26,6 +26,10 @@ interface ChatMessage {
 	role: "user" | "assistant";
 	content: string;
 	model: string | null;
+	inputTokens?: number | null;
+	outputTokens?: number | null;
+	totalTokens?: number | null;
+	createdAt?: string;
 }
 
 interface ChatThreadClientProps {
@@ -254,6 +258,9 @@ export default function ChatThreadClient({
 				role: "assistant",
 				content: "",
 				model,
+				inputTokens: null,
+				outputTokens: null,
+				totalTokens: null,
 			};
 
 			// optimistic UI
@@ -368,6 +375,11 @@ export default function ChatThreadClient({
 				let assistantText = "";
 				let actualModel = model;
 
+				// Token trackers
+				let parsedInputTokens: number | null = null;
+				let parsedOutputTokens: number | null = null;
+				let parsedTotalTokens: number | null = null;
+
 				const parser = createParser({
 					onEvent: (event: EventSourceMessage) => {
 						if (event.data === "[DONE]") return;
@@ -376,6 +388,32 @@ export default function ChatThreadClient({
 
 							if (parsed?.model && actualModel === model) {
 								actualModel = parsed.model;
+							}
+
+							// If this event contains usage info, capture it
+							if (parsed?.usage) {
+								// support keys: prompt_tokens, completion_tokens, total_tokens
+								if (
+									typeof parsed.usage.prompt_tokens ===
+									"number"
+								) {
+									parsedInputTokens =
+										parsed.usage.prompt_tokens;
+								}
+								if (
+									typeof parsed.usage.completion_tokens ===
+									"number"
+								) {
+									parsedOutputTokens =
+										parsed.usage.completion_tokens;
+								}
+								if (
+									typeof parsed.usage.total_tokens ===
+									"number"
+								) {
+									parsedTotalTokens =
+										parsed.usage.total_tokens;
+								}
 							}
 
 							const delta =
@@ -457,7 +495,13 @@ export default function ChatThreadClient({
 				setMessages((prev) =>
 					prev.map((m) =>
 						m.id === assistantPlaceholder.id
-							? { ...m, content: assistantText }
+							? {
+									...m,
+									content: assistantText,
+									inputTokens: parsedInputTokens,
+									outputTokens: parsedOutputTokens,
+									totalTokens: parsedTotalTokens,
+							  }
 							: m
 					)
 				);
@@ -471,6 +515,8 @@ export default function ChatThreadClient({
 						threadId: thread.id,
 						role: "assistant",
 						model: actualModel,
+						inputTokens: parsedInputTokens,
+						outputTokens: parsedOutputTokens,
 					}),
 				}).catch((err) =>
 					console.error("Failed to save assistant message:", err)
@@ -556,6 +602,41 @@ export default function ChatThreadClient({
 									"_Generating your response..._"
 								}
 							/>
+							{/* Meta row for assistant */}
+							{msg.role === "assistant" && !isSending && (
+								<div className="mt-8 text-sm text-stone-800 flex flex-wrap items-center gap-3">
+									{msg.model && (
+										<span className="rounded-md text-xs">
+											Model used:
+											<span className="font-medium ml-1">
+												{
+													availableModels.find(
+														(m) =>
+															m.id === msg.model
+													)?.label
+												}
+											</span>
+										</span>
+									)}
+									{/* show tokens if present */}
+									{(typeof msg.inputTokens === "number" ||
+										typeof msg.outputTokens === "number" ||
+										typeof msg.totalTokens ===
+											"number") && (
+										<span className="px-2 py-1 rounded-md text-xs">
+											{typeof msg.outputTokens ===
+												"number" && (
+												<>
+													<span>Tokens :</span>
+													<span className="font-medium ml-1">
+														{msg.outputTokens}
+													</span>
+												</>
+											)}
+										</span>
+									)}
+								</div>
+							)}
 						</div>
 					))
 				) : currentUserFirstName ? (
